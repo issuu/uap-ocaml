@@ -8,7 +8,11 @@ bug-reports: "https://github.com/issuu/uap-ocaml/issues"
 build: [["dune" "build" "-p" name "-j" jobs]]
 run-test: [["dune" "runtest" "-p" name "-j" jobs]]
 depends: [
-  "dune" {build}
-  "alcotest" {with-test & >= "0.8.3" & < "0.9.0"}
+  "base" { "0.11.0" }
   "re" {>= "1.8.0" & < "2.0.0"}
+  "yaml" {>= "0.2.1" & < "0.3.0"}
+  "dune" {build}
+  "ppx_deriving" {build}
+  "ppx_blob" {build}
+  "alcotest" {with-test & >= "0.8.3" & < "0.9.0"}
 ]
