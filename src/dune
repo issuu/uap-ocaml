@@ -1,7 +1,7 @@
 (library
   (name user_agent_parser)
   (modules (:standard \ test))
-  (libraries yaml base re stdio)
+  (libraries base yaml re stdio)
   (preprocess (pps ppx_let ppx_deriving.eq ppx_deriving.show ppx_blob))
   (preprocessor_deps (file ../uap-core/regexes.yaml))
   (public_name user-agent-parser))
@@ -10,8 +10,8 @@
   (name test)
   (modules test)
   (preprocess (pps ppx_let ppx_deriving.eq ppx_deriving.show))
-  (libraries alcotest user-agent-parser)
-  (public_name test))
+  (preprocessor_deps (file ../uap-core/tests/test_ua.yaml) (file ../uap-core/tests/test_os.yaml) (file ../uap-core/tests/test_device.yaml))
+  (libraries alcotest user-agent-parser))
 
 (alias
   (name runtest)

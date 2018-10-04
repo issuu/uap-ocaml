@@ -1,4 +1,5 @@
 open Base
+(* prevent Format being shadowed by Base.Format, which is deprecated *)
 module Format = Caml.Format
 
 module Parser = struct
@@ -9,25 +10,32 @@ module Parser = struct
       pattern: string;
     } [@@deriving show]
 
-    let of_yaml: Yaml.value -> t = function
+    let of_yaml: Yaml.value -> (t, _) Result.t = function
       | `O assoc -> 
-        let pattern =
-          List.Assoc.find_exn assoc ~equal:String.equal "regex"
-          |> (function `String s -> s | _ -> failwith "invalid yaml")
+        let open Result.Let_syntax in
+        let%bind pattern =
+          List.Assoc.find assoc ~equal:String.equal "regex"
+          |> function
+            | Some (`String s) -> Ok s
+            | Some _
+            | None -> Error "invalid yaml"
         in
         let flags =
           List.Assoc.find assoc ~equal:String.equal "regex_flag"
           |> function Some `String "i" -> [`CASELESS] | _ -> []
         in
-        let regex = Re.Pcre.regexp ~flags pattern in
-        let replacements = List.fold_right assoc ~init:[] ~f:(fun o acc ->
+        let%bind regex =
+          Result.try_with (fun () -> Re.Pcre.regexp ~flags pattern)
+          |> Result.map_error ~f:(function _ -> "invalid yaml")
+        in
+        let%bind replacements = Result.all @@ List.fold_right assoc ~init:[] ~f:(fun o acc ->
           match o with
           | ("regex", _) -> acc 
           | ("regex_flag", _) -> acc 
-          | (k, `String v) -> (k, v) :: acc
-          | _ -> failwith "invalid yaml")
+          | (k, `String v) -> (Ok (k, v)) :: acc
+          | _ -> (Error "invalid yaml") :: acc)
         in
-        { regex; replacements; pattern }
+        return { regex; replacements; pattern }
       | _ -> failwith "invalid yaml"
 
     let apply t s =
@@ -36,7 +44,7 @@ module Parser = struct
       | None -> None
   end
 
-  module Result = struct
+  module Match = struct
     type groups = string list [@@deriving show, eq]
     type replacers = (string * string) list [@@deriving show, eq]
     type t = groups * replacers [@@deriving show, eq]
@@ -67,11 +75,11 @@ module Parser = struct
 
   type t = Rule.t list [@@deriving show]
 
-  let of_yaml: Yaml.value -> t = function
-    | `A seq -> List.map seq ~f:Rule.of_yaml
-    | _ -> failwith "invalid yaml"
+  let of_yaml: Yaml.value -> (t, _) Result.t = function
+    | `A seq -> List.map seq ~f:Rule.of_yaml |> Result.all
+    | _ -> Error "invalid yaml"
   
-  let apply: t -> string -> Result.t = fun t s ->
+  let apply: t -> string -> Match.t = fun t s ->
     List.find_map t ~f:(fun rule ->
       match Rule.apply rule s with
       | Some groups -> Some (Re.Group.all groups |> Array.to_list, rule.replacements)
@@ -93,17 +101,18 @@ module UAParser = struct
   let init () =
     match Yaml.of_string_exn [%blob "../uap-core/regexes.yaml"] with
     | `O assoc ->
-        List.Assoc.find_exn assoc ~equal:String.equal "user_agent_parsers"
-        |> Parser.of_yaml
+      List.Assoc.find_exn assoc ~equal:String.equal "user_agent_parsers"
+      |> Parser.of_yaml
+      |> Result.ok_or_failwith
     | _ -> failwith "invalid yaml"
 
   let parse t ua =
     let result = Parser.apply t ua in
     {
-      family = Parser.Result.get result ("family_replacement", 1) |> Option.value ~default:"Other";
-      major = Parser.Result.get result ("v1_replacement", 2);
-      minor = Parser.Result.get result ("v2_replacement", 3);
-      patch = Parser.Result.get result ("v3_replacement", 4);
+      family = Parser.Match.get result ("family_replacement", 1) |> Option.value ~default:"Other";
+      major = Parser.Match.get result ("v1_replacement", 2);
+      minor = Parser.Match.get result ("v2_replacement", 3);
+      patch = Parser.Match.get result ("v3_replacement", 4);
     }
 end
 
@@ -123,16 +132,17 @@ module OSParser = struct
     | `O assoc ->
         List.Assoc.find_exn assoc ~equal:String.equal "os_parsers"
         |> Parser.of_yaml
+        |> Result.ok_or_failwith
     | _ -> failwith "invalid yaml"
 
   let parse t ua =
     let result = Parser.apply t ua in
     {
-      family = Parser.Result.get result ("os_replacement", 1) |> Option.value ~default:"Other";
-      major = Parser.Result.get result ("os_v1_replacement", 2);
-      minor = Parser.Result.get result ("os_v2_replacement", 3);
-      patch = Parser.Result.get result ("os_v3_replacement", 4);
-      patch_minor = Parser.Result.get result ("os_v4_replacement", 5);
+      family = Parser.Match.get result ("os_replacement", 1) |> Option.value ~default:"Other";
+      major = Parser.Match.get result ("os_v1_replacement", 2);
+      minor = Parser.Match.get result ("os_v2_replacement", 3);
+      patch = Parser.Match.get result ("os_v3_replacement", 4);
+      patch_minor = Parser.Match.get result ("os_v4_replacement", 5);
     }
 end
 
@@ -150,14 +160,15 @@ module DeviceParser = struct
     | `O assoc ->
         List.Assoc.find_exn assoc ~equal:String.equal "device_parsers"
         |> Parser.of_yaml
+        |> Result.ok_or_failwith
     | _ -> failwith "invalid yaml"
 
   let parse t ua =
     let result = Parser.apply t ua in
     {
-      family = Parser.Result.get result ("device_replacement", 1) |> Option.value ~default:"Other";
-      brand = Parser.Result.get result ("brand_replacement", 2);
+      family = Parser.Match.get result ("device_replacement", 1) |> Option.value ~default:"Other";
+      brand = Parser.Match.get result ("brand_replacement", 2);
       (* Not a bug, model replacement is supposed to be 1, see JS ref implementation *)
-      model = Parser.Result.get result ("model_replacement", 1);
+      model = Parser.Match.get result ("model_replacement", 1);
     }
 end

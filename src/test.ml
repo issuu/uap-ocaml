@@ -11,7 +11,7 @@ let load_file : string -> string = fun filename ->
   let buf = Bytes.create len in
   Stdio.In_channel.really_input_exn channel ~buf ~len ~pos:0;
   Stdio.In_channel.close channel;
-  Caml.Printf.sprintf "%s" @@ Bytes.to_string buf
+  Printf.sprintf "%s" @@ Bytes.to_string buf
 
 let quick_test_ua_parser () =
   let t = UAParser.init () in
@@ -31,21 +31,21 @@ let quick_test_device_parser () =
   let actual = DeviceParser.parse t "Mozilla/5.0 (Linux; U; Android 4.2.2; de-de; PEDI_PLUS_W Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30" in
   Alcotest.(check device_result) "correctly parsed device" expected actual
 
-let yaml_to_test_cases_assoc s =
+let parse_test_case_yaml s =
   Yaml.of_string s
   |> Result.map_error ~f:(function `Msg s -> s)
   |> Result.ok_or_failwith
   |> function
     | `O [("test_cases", `A seq)] -> List.map seq ~f:(function
       | `O assoc -> List.Assoc.map assoc ~f:(function 
-          | `String v -> v
-          | _ -> failwith "bad test case yaml")
+        | `String v -> v
+        | _ -> failwith "bad test case yaml")
       | _ -> failwith "bad test case yaml")
     | _ -> failwith "bad test case yaml"
 
-let test_ua_parser () =
+let generate_ua_test_cases () =
   let t = UAParser.init () in
-  List.map (yaml_to_test_cases_assoc (load_file "../uap-core/tests/test_ua.yaml")) ~f:(fun assoc ->
+  List.map (parse_test_case_yaml (load_file "../uap-core/tests/test_ua.yaml")) ~f:(fun assoc ->
     let user_agent_string = List.Assoc.find_exn assoc ~equal:String.equal "user_agent_string" in
     let family = List.Assoc.find_exn assoc ~equal:String.equal "family" in
     let major = List.Assoc.find_exn assoc ~equal:String.equal "major" |> function "" -> None | s -> Some s in
@@ -56,9 +56,9 @@ let test_ua_parser () =
       let actual = UAParser.parse t user_agent_string in
       Alcotest.(check ua_result) user_agent_string expected actual))
 
-let test_os_parser () =
+let generate_os_test_cases () =
   let t = OSParser.init () in
-  List.map (yaml_to_test_cases_assoc (load_file "../uap-core/tests/test_os.yaml")) ~f:(fun assoc ->
+  List.map (parse_test_case_yaml (load_file "../uap-core/tests/test_os.yaml")) ~f:(fun assoc ->
     let user_agent_string = List.Assoc.find_exn assoc ~equal:String.equal "user_agent_string" in
     let family = List.Assoc.find_exn assoc ~equal:String.equal "family" in
     let major = List.Assoc.find_exn assoc ~equal:String.equal "major" |> function "" -> None | s -> Some s in
@@ -70,9 +70,9 @@ let test_os_parser () =
       let actual = OSParser.parse t user_agent_string in
       Alcotest.(check os_result) "test" expected actual))
 
-let test_device_parser () =
+let generate_device_test_cases () =
   let t = DeviceParser.init () in
-  List.map (yaml_to_test_cases_assoc (load_file "../uap-core/tests/test_device.yaml")) ~f:(fun assoc ->
+  List.map (parse_test_case_yaml (load_file "../uap-core/tests/test_device.yaml")) ~f:(fun assoc ->
     let user_agent_string = List.Assoc.find_exn assoc ~equal:String.equal "user_agent_string" in
     let family = List.Assoc.find_exn assoc ~equal:String.equal "family" in
     let brand = List.Assoc.find_exn assoc ~equal:String.equal "brand" |> function "" -> None | s -> Some s in
@@ -80,7 +80,7 @@ let test_device_parser () =
     Alcotest.test_case user_agent_string `Slow (fun () ->
       let expected = DeviceParser.{ family; brand; model } in
       let actual = DeviceParser.parse t user_agent_string in
-      Alcotest.(check device_result) (Caml.Printf.sprintf "'%s'" user_agent_string) expected actual))
+      Alcotest.(check device_result) (Printf.sprintf "'%s'" user_agent_string) expected actual))
 
 
 let set = [
@@ -92,7 +92,7 @@ let set = [
 let () =
   Alcotest.run "test suite" [
     ("test", set);
-    ("ua_parser", test_ua_parser ());
-    ("os_parser", test_os_parser ());
-    ("device_parser", test_device_parser ());
+    ("ua_parser", generate_ua_test_cases ());
+    ("os_parser", generate_os_test_cases ());
+    ("device_parser", generate_device_test_cases ());
   ]
