@@ -1,0 +1,15 @@
+(library
+  (name user_agent_parser)
+  (modules (:standard \ test))
+  (public_name user-agent-parser))
+
+(executable
+  (name test)
+  (modules test)
+  (libraries alcotest user-agent-parser)
+  (public_name test))
+
+(alias
+  (name runtest)
+  (deps (:test test.exe))
+  (action (run %{test} --color=always)))

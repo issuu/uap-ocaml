@@ -1,0 +1,10 @@
+_build
+_opam
+src/.merlin
+
+/user-agent-parser.install
+.merlin
+/_build/
+.DS_Store
+/_opam/
+*.swp
