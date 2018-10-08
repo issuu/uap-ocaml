@@ -8,8 +8,8 @@ bug-reports: "https://github.com/issuu/uap-ocaml/issues"
 build: [["dune" "build" "-p" name "-j" jobs]]
 run-test: [["dune" "runtest" "-p" name "-j" jobs]]
 depends: [
-  "base" { >= "0.11.0" & < "0.12.0"}
-  "stdio" { >= "0.11.0" & < "0.12.0"}
+  "base" { >= "v0.11" & < "v0.12"}
+  "stdio" { >= "v0.11" & < "v0.12"}
   "re" {>= "1.8.0" & < "2.0.0"}
   "yaml" {>= "0.2.1" & < "0.3.0"}
   "dune" {build}
