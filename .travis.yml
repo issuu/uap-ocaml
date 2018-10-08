@@ -1,0 +1,12 @@
+language: c
+compiler:
+ - clang
+sudo: required
+install:
+  - wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
+env:
+  global:
+    - TESTS=true
+  matrix:
+    - OCAML_VERSION=4.06 PACKAGE="user-agent-parser" PINS="user-agent-parser:."
