@@ -99,7 +99,7 @@ module UAParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    match Yaml.of_string_exn [%blob "../uap-core/regexes.yaml"] with
+    match Yaml.of_string_exn Regexes.yaml with
     | `O assoc ->
       List.Assoc.find_exn assoc ~equal:String.equal "user_agent_parsers"
       |> Parser.of_yaml
@@ -128,7 +128,7 @@ module OSParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    match Yaml.of_string_exn [%blob "../uap-core/regexes.yaml"] with
+    match Yaml.of_string_exn Regexes.yaml with
     | `O assoc ->
         List.Assoc.find_exn assoc ~equal:String.equal "os_parsers"
         |> Parser.of_yaml
@@ -156,7 +156,7 @@ module DeviceParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    match Yaml.of_string_exn [%blob "../uap-core/regexes.yaml"] with
+    match Yaml.of_string_exn Regexes.yaml with
     | `O assoc ->
         List.Assoc.find_exn assoc ~equal:String.equal "device_parsers"
         |> Parser.of_yaml

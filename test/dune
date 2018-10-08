@@ -7,4 +7,4 @@
 (alias
   (name runtest)
   (deps (:test test.exe))
-  (action (run %{test} --color=always)))
+  (action (setenv TEST_DIR %{project_root}/uap-core/tests (run %{test} --color=always))))

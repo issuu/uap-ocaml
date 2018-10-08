@@ -14,7 +14,6 @@ depends: [
   "yaml" {>= "0.2.1" & < "0.3.0"}
   "dune" {build}
   "ppx_deriving" {build}
-  "ppx_blob" {build}
   "ppx_let" {build}
   "alcotest" {with-test & >= "0.8.3" & < "0.9.0"}
 ]

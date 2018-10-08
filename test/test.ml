@@ -6,6 +6,7 @@ let os_result = Alcotest.testable OSParser.pp_result OSParser.equal_result
 let device_result = Alcotest.testable DeviceParser.pp_result DeviceParser.equal_result
 
 let load_file : string -> string = fun filename ->
+  let filename = Caml.Filename.concat (Caml.Sys.getenv "TEST_DIR") filename in
   let channel = Stdio.In_channel.create filename in
   let len = Stdio.In_channel.length channel |> Int64.to_int_exn in
   let buf = Bytes.create len in
@@ -45,7 +46,7 @@ let parse_test_case_yaml s =
 
 let generate_ua_test_cases () =
   let t = UAParser.init () in
-  List.map (parse_test_case_yaml (load_file "../uap-core/tests/test_ua.yaml")) ~f:(fun assoc ->
+  List.map (parse_test_case_yaml (load_file "test_ua.yaml")) ~f:(fun assoc ->
     let user_agent_string = List.Assoc.find_exn assoc ~equal:String.equal "user_agent_string" in
     let family = List.Assoc.find_exn assoc ~equal:String.equal "family" in
     let major = List.Assoc.find_exn assoc ~equal:String.equal "major" |> function "" -> None | s -> Some s in
@@ -58,7 +59,7 @@ let generate_ua_test_cases () =
 
 let generate_os_test_cases () =
   let t = OSParser.init () in
-  List.map (parse_test_case_yaml (load_file "../uap-core/tests/test_os.yaml")) ~f:(fun assoc ->
+  List.map (parse_test_case_yaml (load_file "test_os.yaml")) ~f:(fun assoc ->
     let user_agent_string = List.Assoc.find_exn assoc ~equal:String.equal "user_agent_string" in
     let family = List.Assoc.find_exn assoc ~equal:String.equal "family" in
     let major = List.Assoc.find_exn assoc ~equal:String.equal "major" |> function "" -> None | s -> Some s in
@@ -72,7 +73,7 @@ let generate_os_test_cases () =
 
 let generate_device_test_cases () =
   let t = DeviceParser.init () in
-  List.map (parse_test_case_yaml (load_file "../uap-core/tests/test_device.yaml")) ~f:(fun assoc ->
+  List.map (parse_test_case_yaml (load_file "test_device.yaml")) ~f:(fun assoc ->
     let user_agent_string = List.Assoc.find_exn assoc ~equal:String.equal "user_agent_string" in
     let family = List.Assoc.find_exn assoc ~equal:String.equal "family" in
     let brand = List.Assoc.find_exn assoc ~equal:String.equal "brand" |> function "" -> None | s -> Some s in

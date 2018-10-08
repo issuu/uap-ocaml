@@ -1,6 +1,13 @@
+(rule
+ (targets regexes.ml)
+ (deps    %{project_root}/uap-core/regexes.yaml)
+ (action  (with-stdout-to %{targets} (progn
+    (echo "let yaml = {yaml_parser_definitions|")
+    (cat %{deps})
+    (echo "|yaml_parser_definitions}")))))
+
 (library
   (name user_agent_parser)
   (libraries base yaml re stdio)
-  (preprocess (pps ppx_let ppx_deriving.eq ppx_deriving.show ppx_blob))
-  (preprocessor_deps (file ../uap-core/regexes.yaml))
+  (preprocess (pps ppx_let ppx_deriving.eq ppx_deriving.show))
   (public_name user-agent-parser))
