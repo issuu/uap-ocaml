@@ -7,8 +7,7 @@ module Parser = struct
     type t = {
       regex: Re.re;
       replacements: (string * string) list;
-      pattern: string;
-    } [@@deriving show]
+    }
 
     let of_yaml: Yaml.value -> (t, _) Result.t = function
       | `O assoc -> 
@@ -35,7 +34,7 @@ module Parser = struct
           | (k, `String v) -> (Ok (k, v)) :: acc
           | _ -> (Error "invalid yaml") :: acc)
         in
-        return { regex; replacements; pattern }
+        return { regex; replacements }
       | _ -> failwith "invalid yaml"
 
     let apply t s =
@@ -45,9 +44,9 @@ module Parser = struct
   end
 
   module Match = struct
-    type groups = string list [@@deriving show, eq]
-    type replacers = (string * string) list [@@deriving show, eq]
-    type t = groups * replacers [@@deriving show, eq]
+    type groups = string list
+    type replacers = (string * string) list
+    type t = groups * replacers
 
     let replace_regex = Re.Pcre.regexp "\\$\\d+"
 
@@ -73,7 +72,7 @@ module Parser = struct
       Option.map r ~f:String.strip |> function Some "" -> None | x -> x
   end
 
-  type t = Rule.t list [@@deriving show]
+  type t = Rule.t list
 
   let of_yaml: Yaml.value -> (t, _) Result.t = function
     | `A seq -> List.map seq ~f:Rule.of_yaml |> Result.all
@@ -99,7 +98,7 @@ module UAParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    match Yaml.of_string_exn Regexes.yaml with
+    match Regexes.yaml with
     | `O assoc ->
       List.Assoc.find_exn assoc ~equal:String.equal "user_agent_parsers"
       |> Parser.of_yaml
@@ -128,7 +127,7 @@ module OSParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    match Yaml.of_string_exn Regexes.yaml with
+    match Regexes.yaml with
     | `O assoc ->
         List.Assoc.find_exn assoc ~equal:String.equal "os_parsers"
         |> Parser.of_yaml
@@ -156,7 +155,7 @@ module DeviceParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    match Yaml.of_string_exn Regexes.yaml with
+    match Regexes.yaml with
     | `O assoc ->
         List.Assoc.find_exn assoc ~equal:String.equal "device_parsers"
         |> Parser.of_yaml
@@ -172,3 +171,27 @@ module DeviceParser = struct
       model = Parser.Match.get result ("model_replacement", 1);
     }
 end
+
+type t = {
+  ua_parser: UAParser.t;
+  os_parser: OSParser.t;
+  device_parser: DeviceParser.t;
+}
+
+type result = {
+  ua: UAParser.result;
+  os: OSParser.result;
+  device: DeviceParser.result;
+} [@@deriving eq, show]
+
+let init () = {
+  ua_parser = UAParser.init ();
+  os_parser = OSParser.init ();
+  device_parser = DeviceParser.init();
+}
+
+let parse t s = {
+  ua = UAParser.parse t.ua_parser s;
+  os = OSParser.parse t.os_parser s;
+  device = DeviceParser.parse t.device_parser s;
+}

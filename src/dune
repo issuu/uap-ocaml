@@ -2,7 +2,7 @@
  (targets regexes.ml)
  (deps    %{project_root}/uap-core/regexes.yaml)
  (action  (with-stdout-to %{targets} (progn
-    (echo "let yaml = {yaml_parser_definitions|")
+    (echo "let yaml = Yaml.of_string_exn {yaml_parser_definitions|")
     (cat %{deps})
     (echo "|yaml_parser_definitions}")))))
 
