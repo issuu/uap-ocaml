@@ -98,12 +98,16 @@ module UAParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    match Regexes.yaml with
-    | `O assoc ->
-      List.Assoc.find_exn assoc ~equal:String.equal "user_agent_parsers"
-      |> Parser.of_yaml
-      |> Result.ok_or_failwith
-    | _ -> failwith "invalid yaml"
+    (match User_agent_regexes.yaml with
+    | Ok (`O assoc) ->
+      let open Result in
+      List.Assoc.find assoc ~equal:String.equal "user_agent_parsers"
+      |> Result.of_option ~error:"user_agent_parers"
+      >>= Parser.of_yaml
+    | Ok _ -> Error "invalid yaml"
+    | Error (`Msg s) -> Error (Printf.sprintf "invalid yaml: %s" s))
+    |> Result.ok_or_failwith
+
 
   let parse t ua =
     let result = Parser.apply t ua in
@@ -127,12 +131,15 @@ module OSParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    match Regexes.yaml with
-    | `O assoc ->
-        List.Assoc.find_exn assoc ~equal:String.equal "os_parsers"
-        |> Parser.of_yaml
-        |> Result.ok_or_failwith
-    | _ -> failwith "invalid yaml"
+    (match Os_regexes.yaml with
+    | Ok `O assoc ->
+      let open Result in
+      List.Assoc.find assoc ~equal:String.equal "os_parsers"
+      |> Result.of_option ~error:"os_parers"
+      >>= Parser.of_yaml
+    | Ok _ -> Error "invalid yaml"
+    | Error (`Msg s) -> Error (Printf.sprintf "invalid yaml: %s" s))
+    |> Result.ok_or_failwith
 
   let parse t ua =
     let result = Parser.apply t ua in
@@ -155,12 +162,15 @@ module DeviceParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    match Regexes.yaml with
-    | `O assoc ->
-        List.Assoc.find_exn assoc ~equal:String.equal "device_parsers"
-        |> Parser.of_yaml
-        |> Result.ok_or_failwith
-    | _ -> failwith "invalid yaml"
+    (match Device_regexes.yaml with
+    | Ok `O assoc ->
+      let open Result in
+      List.Assoc.find assoc ~equal:String.equal "device_parsers"
+      |> Result.of_option ~error:"device_parers"
+      >>= Parser.of_yaml
+    | Ok _ -> Error "invalid yaml"
+    | Error (`Msg s) -> Error (Printf.sprintf "invalid yaml: %s" s))
+    |> Result.ok_or_failwith
 
   let parse t ua =
     let result = Parser.apply t ua in

@@ -1,9 +1,25 @@
 (rule
- (targets regexes.ml)
+ (targets user_agent_regexes.ml)
  (deps    %{project_root}/uap-core/regexes.yaml)
  (action  (with-stdout-to %{targets} (progn
-    (echo "let yaml = Yaml.of_string_exn {yaml_parser_definitions|")
-    (cat %{deps})
+    (echo "let yaml = Yaml.of_string {yaml_parser_definitions|\n")
+    (system "sed -e '/^os_parsers:/,$d' %{deps}")
+    (echo "|yaml_parser_definitions}")))))
+
+(rule
+ (targets os_regexes.ml)
+ (deps    %{project_root}/uap-core/regexes.yaml)
+ (action  (with-stdout-to %{targets} (progn
+    (echo "let yaml = Yaml.of_string {yaml_parser_definitions|\n")
+    (system "sed -n '/os_parsers:/,/^device_parsers:/p' %{deps}")
+    (echo "|yaml_parser_definitions}")))))
+
+(rule
+ (targets device_regexes.ml)
+ (deps    %{project_root}/uap-core/regexes.yaml)
+ (action  (with-stdout-to %{targets} (progn
+    (echo "let yaml = Yaml.of_string {yaml_parser_definitions|\n")
+    (system "sed -n '/^device_parsers:/,$p' %{deps}")
     (echo "|yaml_parser_definitions}")))))
 
 (library
