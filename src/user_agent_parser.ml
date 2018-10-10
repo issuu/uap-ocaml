@@ -9,15 +9,15 @@ module Parser = struct
       replacements: (string * string) list;
     }
 
-    let of_yaml: Yaml.value -> (t, _) Result.t = function
-      | `O assoc -> 
+    let of_yojson: Yojson.Safe.json -> (t, _) Result.t = function
+      | `Assoc assoc -> 
         let open Result.Let_syntax in
         let%bind pattern =
           List.Assoc.find assoc ~equal:String.equal "regex"
           |> function
             | Some (`String s) -> Ok s
             | Some _
-            | None -> Error "invalid yaml"
+            | None -> Error "invalid json"
         in
         let flags =
           List.Assoc.find assoc ~equal:String.equal "regex_flag"
@@ -25,17 +25,17 @@ module Parser = struct
         in
         let%bind regex =
           Result.try_with (fun () -> Re.Pcre.regexp ~flags pattern)
-          |> Result.map_error ~f:(function _ -> "invalid yaml")
+          |> Result.map_error ~f:(function _ -> "invalid json")
         in
         let%bind replacements = Result.all @@ List.fold_right assoc ~init:[] ~f:(fun o acc ->
           match o with
           | ("regex", _) -> acc 
           | ("regex_flag", _) -> acc 
           | (k, `String v) -> (Ok (k, v)) :: acc
-          | _ -> (Error "invalid yaml") :: acc)
+          | _ -> (Error "invalid json") :: acc)
         in
         return { regex; replacements }
-      | _ -> failwith "invalid yaml"
+      | _ -> failwith "invalid json"
 
     let apply t s =
       match Re.exec_opt t.regex s with
@@ -74,9 +74,9 @@ module Parser = struct
 
   type t = Rule.t list
 
-  let of_yaml: Yaml.value -> (t, _) Result.t = function
-    | `A seq -> List.map seq ~f:Rule.of_yaml |> Result.all
-    | _ -> Error "invalid yaml"
+  let of_yojson: Yojson.Safe.json -> (t, _) Result.t = function
+    | `List seq -> List.map seq ~f:Rule.of_yojson |> Result.all
+    | _ -> Error "invalid json"
   
   let apply: t -> string -> Match.t = fun t s ->
     List.find_map t ~f:(fun rule ->
@@ -98,14 +98,14 @@ module UAParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    (match User_agent_regexes.yaml with
-    | Ok (`O assoc) ->
+    (match User_agent_regexes.json with
+    | Ok (`Assoc assoc) ->
       let open Result in
       List.Assoc.find assoc ~equal:String.equal "user_agent_parsers"
-      |> Result.of_option ~error:"user_agent_parers"
-      >>= Parser.of_yaml
-    | Ok _ -> Error "invalid yaml"
-    | Error (`Msg s) -> Error (Printf.sprintf "invalid yaml: %s" s))
+      |> Result.of_option ~error:"user_agent_parsers"
+      >>= Parser.of_yojson
+    | Ok _ -> Error "invalid json"
+    | Error (`Msg s) -> Error (Printf.sprintf "invalid json: %s" s))
     |> Result.ok_or_failwith
 
 
@@ -131,14 +131,14 @@ module OSParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    (match Os_regexes.yaml with
-    | Ok `O assoc ->
+    (match Os_regexes.json with
+    | Ok `Assoc assoc ->
       let open Result in
       List.Assoc.find assoc ~equal:String.equal "os_parsers"
-      |> Result.of_option ~error:"os_parers"
-      >>= Parser.of_yaml
-    | Ok _ -> Error "invalid yaml"
-    | Error (`Msg s) -> Error (Printf.sprintf "invalid yaml: %s" s))
+      |> Result.of_option ~error:"os_parsers"
+      >>= Parser.of_yojson
+    | Ok _ -> Error "invalid json"
+    | Error (`Msg s) -> Error (Printf.sprintf "invalid json: %s" s))
     |> Result.ok_or_failwith
 
   let parse t ua =
@@ -162,14 +162,14 @@ module DeviceParser = struct
   } [@@deriving eq, show]
 
   let init () =
-    (match Device_regexes.yaml with
-    | Ok `O assoc ->
+    (match Device_regexes.json with
+    | Ok `Assoc assoc ->
       let open Result in
       List.Assoc.find assoc ~equal:String.equal "device_parsers"
-      |> Result.of_option ~error:"device_parers"
-      >>= Parser.of_yaml
-    | Ok _ -> Error "invalid yaml"
-    | Error (`Msg s) -> Error (Printf.sprintf "invalid yaml: %s" s))
+      |> Result.of_option ~error:"device_parsers"
+      >>= Parser.of_yojson
+    | Ok _ -> Error "invalid json"
+    | Error (`Msg s) -> Error (Printf.sprintf "invalid json: %s" s))
     |> Result.ok_or_failwith
 
   let parse t ua =

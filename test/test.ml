@@ -32,21 +32,18 @@ let quick_test_device_parser () =
   let actual = DeviceParser.parse t "Mozilla/5.0 (Linux; U; Android 4.2.2; de-de; PEDI_PLUS_W Build/JDQ39) AppleWebKit/534.30 (KHTML, like Gecko) Version/4.0 Safari/534.30" in
   Alcotest.(check device_result) "correctly parsed device" expected actual
 
-let parse_test_case_yaml s =
-  Yaml.of_string s
-  |> Result.map_error ~f:(function `Msg s -> s)
-  |> Result.ok_or_failwith
-  |> function
-    | `O [("test_cases", `A seq)] -> List.map seq ~f:(function
-      | `O assoc -> List.Assoc.map assoc ~f:(function 
-        | `String v -> v
-        | _ -> failwith "bad test case yaml")
-      | _ -> failwith "bad test case yaml")
-    | _ -> failwith "bad test case yaml"
+let parse_test_case_json s =
+  match Yojson.Safe.from_string s with
+  | `Assoc [("test_cases", `List seq)] -> List.map seq ~f:(function
+    | `Assoc assoc -> List.Assoc.map assoc ~f:(function 
+      | `String v -> v
+      | _ -> failwith "bad test case json")
+    | _ -> failwith "bad test case json")
+  | _ -> failwith "bad test case json"
 
 let generate_ua_test_cases () =
   let t = UAParser.init () in
-  List.map (parse_test_case_yaml (load_file "test_ua.yaml")) ~f:(fun assoc ->
+  List.map (parse_test_case_json (load_file "test_ua.json")) ~f:(fun assoc ->
     let user_agent_string = List.Assoc.find_exn assoc ~equal:String.equal "user_agent_string" in
     let family = List.Assoc.find_exn assoc ~equal:String.equal "family" in
     let major = List.Assoc.find_exn assoc ~equal:String.equal "major" |> function "" -> None | s -> Some s in
@@ -59,7 +56,7 @@ let generate_ua_test_cases () =
 
 let generate_os_test_cases () =
   let t = OSParser.init () in
-  List.map (parse_test_case_yaml (load_file "test_os.yaml")) ~f:(fun assoc ->
+  List.map (parse_test_case_json (load_file "test_os.json")) ~f:(fun assoc ->
     let user_agent_string = List.Assoc.find_exn assoc ~equal:String.equal "user_agent_string" in
     let family = List.Assoc.find_exn assoc ~equal:String.equal "family" in
     let major = List.Assoc.find_exn assoc ~equal:String.equal "major" |> function "" -> None | s -> Some s in
@@ -73,7 +70,7 @@ let generate_os_test_cases () =
 
 let generate_device_test_cases () =
   let t = DeviceParser.init () in
-  List.map (parse_test_case_yaml (load_file "test_device.yaml")) ~f:(fun assoc ->
+  List.map (parse_test_case_json (load_file "test_device.json")) ~f:(fun assoc ->
     let user_agent_string = List.Assoc.find_exn assoc ~equal:String.equal "user_agent_string" in
     let family = List.Assoc.find_exn assoc ~equal:String.equal "family" in
     let brand = List.Assoc.find_exn assoc ~equal:String.equal "brand" |> function "" -> None | s -> Some s in
