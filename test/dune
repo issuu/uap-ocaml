@@ -35,4 +35,4 @@
   (deps (:test test.exe) test_ua.json test_os.json test_device.json)
   (action
     (setenv TEST_DIR ./
-    (run %{test} --color=always))))
+    (run %{test} --json --color=always))))
