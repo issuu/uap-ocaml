@@ -1,11 +1,10 @@
 language: c
-dist: bionic
-sudo: false
-compiler:
- - clang
-install:
-  - printf "$HOME/bin\n\n" | sh <(curl -sL https://raw.githubusercontent.com/ocaml/opam/master/shell/install.sh)
-  - opam init --yes --disable-sandboxing --bare
-  - opam switch create --yes --with-test . '4.06.1'
-script:
-  - dune runtest
+sudo: required
+install: wget https://raw.githubusercontent.com/ocaml/ocaml-ci-scripts/master/.travis-opam.sh
+script: bash -ex .travis-opam.sh
+env:
+  global:
+    - DEPOPTS="*"
+    - TESTS=true
+  matrix:
+    - OCAML_VERSION=4.06
