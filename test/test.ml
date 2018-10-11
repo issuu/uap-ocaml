@@ -6,7 +6,7 @@ let os_result = Alcotest.testable OSParser.pp_result OSParser.equal_result
 let device_result = Alcotest.testable DeviceParser.pp_result DeviceParser.equal_result
 
 let load_file : string -> string = fun filename ->
-  let filename = Caml.Filename.concat (Caml.Sys.getenv "TEST_DIR") filename in
+  let filename = Caml.Filename.concat (Caml.Sys.getenv_opt "TEST_DIR" |> Option.value ~default:"./") filename in
   let channel = Stdio.In_channel.create filename in
   let len = Stdio.In_channel.length channel |> Int64.to_int_exn in
   let buf = Bytes.create len in
