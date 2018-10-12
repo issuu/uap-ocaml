@@ -26,4 +26,5 @@ release: clean build test
 	dune-release tag
 	dune-release distrib --skip-build
 	$(MAKE) _build/fixed-release/`cd _build/ && ls *.tbz | head -n1`
-	dune-release publish --dist-file `find _build/fixed-release -type f`
+	dune-release publish --dist-file `ls _build/fixed-release/*.tbz`
+	dune-release opam pkg --dist-file `ls _build/fixed-release/*.tbz`
