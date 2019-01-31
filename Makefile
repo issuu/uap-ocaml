@@ -1,7 +1,3 @@
-.PHONY: clean
-clean:
-	dune clean
-
 .PHONY: build
 build:
 	dune build
@@ -9,6 +5,10 @@ build:
 .PHONY: test
 test:
 	dune runtest --force
+
+.PHONY: clean
+clean:
+	dune clean
 
 _build/fixed-release/%.tbz: _build/%.tbz
 	mkdir -p $(dir $@)
