@@ -1,4 +1,4 @@
-let rec yaml2json : Yaml.value -> Yojson.Safe.json = function
+let rec yaml2json : Yaml.value -> Yojson.Safe.t = function
   | `A values -> `List (List.map yaml2json values)
   | `Bool b -> `Bool b
   | `Float f -> `Float f

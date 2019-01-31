@@ -9,7 +9,7 @@ module Parser = struct
       replacements: (string * string) list;
     }
 
-    let of_yojson: Yojson.Safe.json -> (t, _) Result.t = function
+    let of_yojson: Yojson.Safe.t -> (t, _) Result.t = function
       | `Assoc assoc -> 
         let open Result.Let_syntax in
         let%bind pattern =
@@ -74,7 +74,7 @@ module Parser = struct
 
   type t = Rule.t list
 
-  let of_yojson: Yojson.Safe.json -> (t, _) Result.t = function
+  let of_yojson: Yojson.Safe.t -> (t, _) Result.t = function
     | `List seq -> List.map seq ~f:Rule.of_yojson |> Result.all
     | _ -> Error "invalid json"
   
