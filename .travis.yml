@@ -7,4 +7,4 @@ env:
     - DEPOPTS="*"
     - TESTS=true
   matrix:
-    - OCAML_VERSION=4.06
+    - OCAML_VERSION=4.07
