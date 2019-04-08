@@ -1,7 +1,7 @@
 opam-version: "2.0"
 maintainer: "Issuu Raccoons <racoon@issuu.com>"
 author: "Issuu Raccoon"
-synopsis: "Ocaml implementation of the user agent parse rules from https://github.com/ua-parser/uap-core"
+synopsis: "OCaml implementation of the user agent parse rules of uap-core"
 homepage: "https://github.com/issuu/uap-ocaml"
 doc: "https://issuu.github.io/uap-ocaml/"
 dev-repo: "git+https://github.com/issuu/uap-ocaml.git"
@@ -19,3 +19,5 @@ depends: [
   "yaml" {build & >= "0.2.1" & < "0.3.0"}
   "yojson" {>= "1.6.0" & < "2.0"}
 ]
+description: """
+OCaml implementation of the user agent parse rules from https://github.com/ua-parser/uap-core"""
