@@ -1,3 +1,6 @@
+0.1.2
+=====
+
 * Do not constrain maximum version of Jane Street dependencies
 
 0.1.1
