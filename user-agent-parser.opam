@@ -9,15 +9,15 @@ bug-reports: "https://github.com/issuu/uap-ocaml/issues"
 build: [["dune" "build" "-p" name "-j" jobs]]
 run-test: [["dune" "runtest" "-p" name "-j" jobs]]
 depends: [
-  "alcotest" {with-test & >= "0.8.3" & < "0.9.0"}
+  "alcotest" {with-test & >= "0.8.3"}
   "base" {>= "v0.11"}
-  "dune" {build}
+  "dune"
   "ppx_deriving" {build}
   "ppx_let" {build}
   "stdio" {>= "v0.11"}
-  "re" {>= "1.8.0" & < "2.0.0"}
-  "yaml" {build & >= "0.2.1" & < "0.3.0"}
-  "yojson" {>= "1.6.0" & < "2.0"}
+  "re" {>= "1.8.0"}
+  "yaml" {build & >= "0.2.1"}
+  "yojson" {>= "1.6.0"}
 ]
 description: """
 OCaml implementation of the user agent parse rules from https://github.com/ua-parser/uap-core"""

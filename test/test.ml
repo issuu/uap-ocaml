@@ -37,6 +37,7 @@ let parse_test_case_json s =
   | `Assoc [("test_cases", `List seq)] -> List.map seq ~f:(function
     | `Assoc assoc -> List.Assoc.map assoc ~f:(function 
       | `String v -> v
+      | `Null -> ""
       | _ -> failwith "bad test case json")
     | _ -> failwith "bad test case json")
   | _ -> failwith "bad test case json"
