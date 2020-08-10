@@ -1,3 +1,8 @@
+0.1.3
+=====
+
+* Remove upper bounds on remaining dependencies
+
 0.1.2
 =====
 
